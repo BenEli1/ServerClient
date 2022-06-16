@@ -6,53 +6,63 @@
 #include <signal.h>
 #include <ctype.h>
 #include <string.h>
+//repeatable defines.
+#define SERVER "to_srv"
+#define BUF_SIZE 150
+#define ERROR "ERROR_FROM_EX4\n"
+#define TIMEOUT30 "Client closed because no response was received from the server for 30 seconds\n"
 
-#define SIZE 150
+//handler of 30 sec timeout using alarm signal
 void alarm_handler_timeout() {
-    printf("Client closed because no response was received from the server for 30 seconds\n");
+    printf(TIMEOUT30);
     signal(SIGALRM, alarm_handler_timeout);
     exit(0);
 }
-void print_handler(){
+//overriding SIGUSR1
+void answer_from_server_handler() {
 
 }
 
 int main(int argc, char *argv[]) {
-    signal(SIGUSR1, print_handler);
+    //signal override first
+    signal(SIGUSR1, answer_from_server_handler);
     signal(SIGALRM, alarm_handler_timeout);
-    if (argc < 5) {
+
+    //we receive 4 arguments - PID of Server,num1,+|-|*|/,num2
+    if (argc != 5) {
         exit(-1);
     }
-    int fileOpen;
-    char * first_num, second_num, calc_opreator;
-    char file_write[SIZE];
-    pid_t pid;
-    int i = -1;
-    pid = atoi(argv[1]);
+
+    int fileOpen, i = -1;
+    char *first_num, second_num, operation;
+    char file_write[BUF_SIZE];
+    pid_t serv_pid = atoi(argv[1]);
     first_num = argv[2];
-    calc_opreator = argv[3];
+    operation = argv[3];
     second_num = argv[4];
+
     while (i < 10) {
         i++;
-        fileOpen = open("to_srv", O_CREAT | O_WRONLY | O_EXCL, 0777);
+        fileOpen = open(SERVER, O_CREAT | O_WRONLY | O_EXCL, 0777);
         if (fileOpen < 0) {
+            //using rand in order for 2 clients not to access the server at the same time.
             alarm(rand() % 5 + 1);
             pause();
         } else {
             break;
         }
     }
-    if(i==10){
-        printf("ERROR_FROM_EX4\n");
+    if (i == 10) {
+        printf(ERROR);
     }
-
-    sprintf(file_write, "%d %s %s %s\n", getpid(), first_num, calc_opreator, second_num);
+    //write to file,first your pid so the server knows to which client to respond,then the args for the server.
+    sprintf(file_write, "%d %s %s %s\n", getpid(), first_num, operation, second_num);
     write(fileOpen, file_write, strlen(fileOpen));
     close(fileOpen);
-    pid_t serv_pid = atoi(argv[1]);
+
     signal(SIGALRM, alarm_handler_timeout);
     kill(serv_pid, SIGUSR1);
-    signal(SIGUSR1, print_handler);
+    signal(SIGUSR1, answer_from_server_handler);
     alarm(30);
     pause();
     return 0;
