@@ -23,24 +23,24 @@ void alarm_handler_timeout() {
 
 //overriding SIGUSR1
 void answer_from_server_handler() {
-    int openFile, readFile;
+    int open_file, read_file;
     char client_file_path[BUF_SIZE] = {};
     char read_from_file[BUF_SIZE] = {};
     sprintf(client_file_path, "to_client_%d.txt", getpid());
     //open
-    openFile = open(client_file_path, O_RDONLY);
-    if (openFile == -1) {
+    open_file = open(client_file_path, O_RDONLY);
+    if (open_file == -1) {
         printf(ERROR);
         exit(-1);
     }
     //read
-    readFile = read(openFile, read_from_file, BUF_SIZE);
-    if (readFile == -1) {
+    read_file = read(open_file, read_from_file, BUF_SIZE);
+    if (read_file == -1) {
         printf(ERROR);
         exit(-1);
     }
     //close
-    close(openFile);
+    close(open_file);
     printf("%s\n", read_from_file);
     remove(client_file_path);
     exit(0);
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
-    int fileOpen, i = 0;
+    int file_open, i = 0;
     char *first_num = "", *second_num = "", *operation = "";
     char file_write[BUF_SIZE];
     pid_t pid = atoi(argv[1]);
@@ -67,8 +67,8 @@ int main(int argc, char *argv[]) {
     while (i < 10) {
         i++;
         //open
-        fileOpen = open(SERVER, O_CREAT | O_WRONLY | O_EXCL, 0777);
-        if (fileOpen < 0) {
+        file_open = open(SERVER, O_CREAT | O_WRONLY | O_EXCL, 0777);
+        if (file_open < 0) {
             //using rand in order for 2 clients not to access the server at the same time.
             alarm(rand() % 5 + 1);
             pause();
@@ -78,14 +78,15 @@ int main(int argc, char *argv[]) {
     }
     if (i >= 10) {
         printf(ERROR);
+        close(file_open);
         exit(-1);
     }
     //write to file,first your pid so the server knows to which client to respond,then the args for the server.
     sprintf(file_write, "%d %s %s %s\n", getpid(), first_num, operation, second_num);
     //write
-    write(fileOpen, file_write, strlen(file_write));
+    write(file_open, file_write, strlen(file_write));
     //close
-    close(fileOpen);
+    close(file_open);
     //signal the server
     kill(pid, SIGUSR1);
     signal(SIGUSR1, answer_from_server_handler);

@@ -15,7 +15,7 @@
 #define ERROR "ERROR_FROM_EX4\n"
 #define TIMEOUT60 "The server was closed because no service request was received for the last 60 seconds\n"
 #define DIVIDE_BY_ZERO "CANNOT_DIVIDE_BY_ZERO\n"
-
+//60 sec timeout in the server using alarm signal.
 void time_out_60() {
     signal(SIGALRM, time_out_60);
     printf(TIMEOUT60);
@@ -25,23 +25,24 @@ void time_out_60() {
 }
 
 void client_handler() {
+    //signal at start in order to override the signals table.
     signal(SIGUSR1, client_handler);
-    int fileOpenServer, fileReadServer, fileOpenClient, fileWriteClient;
+    int file_open_server, file_read_server, file_open_client, file_write_client;
     pid_t child_pid;
     char buffer[BUF_SIZE] = {};
     char result_string[BUF_SIZE];
     //open to_srv file and try to read from it.
-    fileOpenServer = open(SERVER, O_RDONLY);
-    if (fileOpenServer < 0) {
+    file_open_server = open(SERVER, O_RDONLY);
+    if (file_open_server < 0) {
         printf(ERROR);
         exit(-1);
     }
-    fileReadServer = read(fileOpenServer, buffer, BUF_SIZE);
-    if (fileReadServer < 0) {
+    file_read_server = read(file_open_server, buffer, BUF_SIZE);
+    if (file_read_server < 0) {
         printf(ERROR);
         exit(-1);
     }
-    close(fileOpenServer);
+    close(file_open_server);
     remove(SERVER);
     child_pid = fork();
     if (child_pid < 0) {
@@ -68,8 +69,8 @@ void client_handler() {
         first_num = args[0];
         operation = args[1];
         second_num = args[2];
-        fileOpenClient = open(to_client_pid, O_CREAT | O_WRONLY | O_SYNC, 0777);
-        if (fileOpenClient < 0) {
+        file_open_client = open(to_client_pid, O_CREAT | O_WRONLY | O_SYNC, 0777);
+        if (file_open_client < 0) {
             printf(ERROR);
             exit(-1);
         }
@@ -87,13 +88,13 @@ void client_handler() {
             case 4:
                 if (second_num == 0) {
                     //write
-                    fileWriteClient = write(fileOpenClient, DIVIDE_BY_ZERO, strlen(DIVIDE_BY_ZERO));
-                    if (fileWriteClient < 0) {
+                    file_write_client = write(file_open_client, DIVIDE_BY_ZERO, strlen(DIVIDE_BY_ZERO));
+                    if (file_write_client < 0) {
                         printf(ERROR);
                         exit(-1);
                     }
                     //close
-                    close(fileWriteClient);
+                    close(file_write_client);
                     kill(pid, SIGUSR1);
                     exit(0);
                 }
@@ -104,15 +105,17 @@ void client_handler() {
                 exit(-1);
         }
         sprintf(result_string, "%d", result);
-        fileWriteClient = write(fileOpenClient, result_string, strlen(result_string));
-        if (fileWriteClient < 0) {
+        //write
+        file_write_client = write(file_open_client, result_string, strlen(result_string));
+        if (file_write_client < 0) {
             printf(ERROR);
             exit(-1);
         }
         //close
-        close(fileOpenClient);
+        close(file_open_client);
         kill(pid, SIGUSR1);
         exit(0);
+    //main server
     } else {
         return;
     }
@@ -123,6 +126,7 @@ int main() {
     //put the signals in the start in order to add them to the signal table
     signal(SIGALRM, time_out_60);
     signal(SIGUSR1, client_handler);
+    //deletes any existing file when starting the service.
     remove(SERVER);
     while (1) {
         alarm(60);
