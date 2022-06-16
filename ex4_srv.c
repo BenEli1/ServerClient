@@ -14,7 +14,7 @@
 #define BUF_SIZE 150
 #define ERROR "ERROR_FROM_EX4\n"
 #define TIMEOUT60 "The server was closed because no service request was received for the last 60 seconds\n"
-#define DIVIDE_BY_ZERO "CANNOT_DIVIDE_BY_ZERO"
+#define DIVIDE_BY_ZERO "CANNOT_DIVIDE_BY_ZERO\n"
 
 void time_out_60() {
     signal(SIGALRM, time_out_60);
