@@ -47,10 +47,6 @@ void answer_from_server_handler() {
 }
 
 int main(int argc, char *argv[]) {
-    //signal override first
-    signal(SIGUSR1, answer_from_server_handler);
-    signal(SIGALRM, alarm_handler_timeout);
-
     //we receive 4 arguments - PID of Server,num1,+|-|*|/,num2
     if (argc != 5) {
         printf(ERROR);
@@ -86,9 +82,10 @@ int main(int argc, char *argv[]) {
     write(file_open, file_write, strlen(file_write));
     //close
     close(file_open);
+    //override signals
+    signal(SIGUSR1, answer_from_server_handler);
     //signal the server
     kill(pid, SIGUSR1);
-    signal(SIGUSR1, answer_from_server_handler);
     //30 sec timeout alarm signal
     signal(SIGALRM, alarm_handler_timeout);
     alarm(30);
