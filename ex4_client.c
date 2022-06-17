@@ -41,7 +41,7 @@ void answer_from_server_handler() {
     }
     //close
     close(open_file);
-    printf("%s\n", read_from_file);
+    printf("%s", read_from_file);
     remove(client_file_path);
     exit(0);
 }
