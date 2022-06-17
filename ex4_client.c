@@ -70,8 +70,7 @@ int main(int argc, char *argv[]) {
         file_open = open(SERVER, O_CREAT | O_WRONLY | O_EXCL, 0777);
         if (file_open < 0) {
             //using rand in order for 2 clients not to access the server at the same time.
-            alarm(rand() % 5 + 1);
-            pause();
+            sleep(rand() % 5 + 1);
         } else {
             break;
         }
