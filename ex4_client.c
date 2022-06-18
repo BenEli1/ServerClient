@@ -29,13 +29,13 @@ void answer_from_server_handler() {
     sprintf(client_file_path, "to_client_%d.txt", getpid());
     //open
     open_file = open(client_file_path, O_RDONLY);
-    if (open_file == -1) {
+    if (open_file < 0) {
         printf(ERROR);
         exit(-1);
     }
     //read
     read_file = read(open_file, read_from_file, BUF_SIZE);
-    if (read_file == -1) {
+    if (read_file < 0) {
         printf(ERROR);
         exit(-1);
     }
