@@ -39,6 +39,7 @@ void client_handler() {
     }
     file_read_server = read(file_open_server, buffer, BUF_SIZE);
     if (file_read_server < 0) {
+        close(file_open_server);
         printf(ERROR);
         exit(-1);
     }
@@ -90,6 +91,7 @@ void client_handler() {
                     //write
                     file_write_client = write(file_open_client, DIVIDE_BY_ZERO, strlen(DIVIDE_BY_ZERO));
                     if (file_write_client < 0) {
+                        close(file_open_client);
                         printf(ERROR);
                         exit(-1);
                     }
@@ -102,6 +104,7 @@ void client_handler() {
                 break;
             default:
                 printf(ERROR);
+                close(file_write_client);
                 exit(-1);
         }
         sprintf(result_string, "%d", result);

@@ -36,6 +36,7 @@ void answer_from_server_handler() {
     //read
     read_file = read(open_file, read_from_file, BUF_SIZE);
     if (read_file < 0) {
+        close(open_file);
         printf(ERROR);
         exit(-1);
     }
@@ -85,7 +86,12 @@ int main(int argc, char *argv[]) {
     //override signals
     signal(SIGUSR1, answer_from_server_handler);
     //signal the server
-    kill(pid, SIGUSR1);
+    int ret_kill= kill(pid, SIGUSR1);
+    if(ret_kill<0){
+        remove(SERVER);
+        printf(ERROR);
+        return 0;
+    }
     //30 sec timeout alarm signal
     signal(SIGALRM, alarm_handler_timeout);
     alarm(30);
